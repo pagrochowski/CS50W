@@ -1,0 +1,102 @@
+html, body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+p {
+    font-size: 13px;
+}
+ 
+
+$row-border: 2px solid rgb(255, 255, 255);
+
+%row-formatting {
+    padding: 20px;
+    background-color: rgb(255, 255, 255);
+    border: $row-border;
+}
+
+%message-shared {
+    border: 1px solid #ccc;
+    padding: 10px;
+    color: #333;
+  }
+  
+.row { 
+    display: flex;   /* Enable Flexbox */
+    flex-wrap: nowrap;  /* Prevent wrapping */
+}
+
+.row > div {
+    @extend %row-formatting;
+    height: 25vh;
+    min-height: 80px;
+}
+
+/* Special ID for the middle row */
+#middle-row {
+    @extend %row-formatting;
+    height: 50vh;
+    display: flex;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.link {
+    display: flex; /* Activate flexbox */
+    flex-direction: column; 
+    align-items: flex-end; /* Center horizontally */
+    border: $row-border;
+}
+
+/* Place the search bar in the center of the grid item */
+.search_bar {
+    display: flex; /* Activate flexbox */
+    flex-direction: column; 
+    align-items: center; /* Center horizontally */
+    justify-content: center;  /* Should center vertically */
+    border: $row-border;
+    width: 800px;
+}
+
+    /* Add margin to the bottom of search bar */
+    .search_bar input {
+        margin-bottom: 10px;
+    }
+
+    .search_bar input[type="text"] {
+        border-radius: 10px; /* Make the search bar edges rounded */
+        width: 100%; /* Limit width to a maximum of 600px */
+    }
+
+/* BEGIN #### advanced.html specific #### */
+
+/* Align text in the table to the left */
+.table-advanced {
+    text-align: left;
+    border: $row-border;
+    width: 100%;
+}
+
+    /* Set the width of input box to a wider one */
+    .table-advanced input[type="text"] {
+        width: 100%;
+        border-radius: 0px; /* Override the roundness of usual search bar elements */
+    }
+
+    /* Target the specific table if you added a class */
+    .table-advanced td:first-child { 
+        width: 25%; /* Adjust percentage as needed */
+        min-width: 160px;
+    }
+
+    .table-advanced td:nth-child(2) { 
+        width: 75%; /* Adjust percentage as needed */
+    }
+
+/* Change search bar color scheme to blue and white, matching google website */
+.advanced-search-button {
+    background-color: rgb(10, 152, 247);
+    color: white;
+}
+
+/* END #### advanced.html specific #### */

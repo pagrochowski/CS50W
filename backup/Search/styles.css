@@ -1,0 +1,106 @@
+/* set the whole body of the html to fit 95% of the screen, usueful with the grid */
+html, body {
+    height: 95%;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* font size for standard paragraphs */
+p {
+    font-size: 13px;
+}
+
+/* grid settings */
+.grid {
+    background-color: rgb(13, 204, 71);
+    display: grid;
+    padding: 10px;
+    grid-column-gap: 10px;
+    grid-row-gap: 10px;
+    grid-template-columns: auto auto auto; /* automatic width */
+    grid-auto-rows: minmax(auto, auto); /* automatic height */
+    place-items: center; /* centering grid item content in the center */
+    height: 100%; /* fill the grid to 100% height of the html body */
+}
+
+/* general grid item settings */
+.grid-item {
+    background-color: white;
+    font-size: 20px;
+    padding: 20px;
+    text-align: center;
+}
+
+/* First item with set width and height to ensure layout consistency 
+versus third item containing links */
+.grid-item:nth-child(1) {
+    align-self: start;
+    justify-self: start;
+    height: 50px;
+    width: 200px;
+}
+
+/* Third item (top right) is now aligned and justified to the top-right 
+This counteracts place-items: center; property of the grid */
+.grid-item:nth-child(3) {
+    align-self: start;
+    justify-self: end;
+    height: 50px;
+    width: 200px;
+}
+
+.grid-item:nth-child(5) {
+
+    height: 100px;
+    width: 400px;
+}
+
+/* float the links to the right hand side */
+.link {
+    float: right;
+}
+
+/* Place the search bar in the center of the grid item */
+.search_bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Add margin to the bottom of search bar */
+.search_bar input {
+    margin-bottom: 10px;
+}
+
+/* Make the search bar edges rounded */
+.search_bar input[type="text"] {
+    border-radius: 10px; 
+}
+
+/* ########################## advanced.html specific ########################## */
+
+/* Align text in the table to the left */
+.table-advanced {
+    text-align: left;
+}
+
+    /* Add spaces between table elements in a row */
+    .table-advanced td {
+        padding-right: 30px;
+    }
+
+    /* Set the width of input box to a wider one */
+    .table-advanced input[type="text"] {
+        width: 500px;
+        border-radius: 0px; /* Override the roundness of usual search bar elements */
+    }
+
+/* Change search bar color scheme to blue and white, matching google website */
+.advanced-search-button {
+    background-color: rgb(10, 152, 247);
+    color: white;
+}
+
+/* ########################## advanced.html specific ########################## */
