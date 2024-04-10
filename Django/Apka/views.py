@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
+import testowy
+
 # Create your views here.
 def index(request):
     return render(request, "Apka/index.html")

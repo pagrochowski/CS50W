@@ -1,0 +1,2 @@
+def testowy():
+    return "Testowy"
