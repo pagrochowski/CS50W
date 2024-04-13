@@ -1,2 +1,0 @@
-def testowy():
-    return "Testowy"

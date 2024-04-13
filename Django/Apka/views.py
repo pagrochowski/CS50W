@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
-import testowy
+from .testowy import testowy
+
+print(testowy())
 
 # Create your views here.
 def index(request):

@@ -1,8 +1,14 @@
 from django.shortcuts import render, redirect
-import markdown2
+import markdown2, random
 from django import forms
 from django.http import HttpResponseNotFound
 from . import util
+
+
+def random_page(request):
+    entries = util.list_entries()
+    random_title = random.choice(entries)
+    return redirect('entry_page', title=random_title) 
 
 
 class NewPageForm(forms.Form):
@@ -21,7 +27,7 @@ def edit_page(request, title):
             util.save_entry(title, form.cleaned_data['content'])
             return redirect('entry_page', title=title)
 
-    else:  # GET request
+    else: 
         form = NewPageForm(initial={'title': title, 'content': entry_content})  
 
     return render(request, 'encyclopedia/edit_page.html', {
@@ -62,24 +68,24 @@ def entry_page(request, title):
             "message": "Encyclopedia entry not found."
         })
     else:
-        content = markdown2.markdown(entry)  # Convert to HTML
+        content = markdown2.markdown(entry)  
         return render(request, "encyclopedia/entry.html", {
             "title": title,
             "content": content})
 
 
 def search_results(request):
-    query = request.GET.get('q')  # Get the 'q' query parameter
-    print("Query: ", query)
+    query = request.GET.get('q')  
+    #print("Query: ", query)
     entries = util.list_entries()  
-    print("Entries: ",entries)
-    perfect_match = [entry for entry in entries if query.lower() == entry.lower()] # Exact match
-    print("Perfect match: ", perfect_match)
+    #print("Entries: ",entries)
+    perfect_match = [entry for entry in entries if query.lower() == entry.lower()] 
+    #print("Perfect match: ", perfect_match)
     matches = [entry for entry in entries if query.lower() in entry.lower()]
-    print("Matches: ",matches)
+    #print("Matches: ",matches)
 
     if len(perfect_match) == 1:
-        return redirect('entry_page', perfect_match[0])  # Direct match, use redirect
+        return redirect('entry_page', perfect_match[0])  
     else:
         return render(request, "encyclopedia/search_results.html", {
             "matches": matches, 
