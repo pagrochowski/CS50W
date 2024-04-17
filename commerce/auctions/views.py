@@ -7,6 +7,7 @@ from .models import AuctionListing, User
 from .forms import CreateListingForm
 from django.views.generic import CreateView
 
+
 class CreateListingView(CreateView):
     model = AuctionListing
     form_class = CreateListingForm
@@ -26,7 +27,9 @@ def listing_detail(request, listing_id):
     return render(request, 'auctions/listing_detail.html', context) 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    active_listings = AuctionListing.objects.filter(active = True)  
+    context = {'listings': active_listings}
+    return render(request, "auctions/index.html", context)
 
 
 def login_view(request):
