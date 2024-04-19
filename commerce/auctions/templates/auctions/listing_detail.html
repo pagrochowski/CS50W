@@ -27,6 +27,10 @@
 
     <p><strong>Current Bid:</strong> ${{ listing.current_bid }}</p>
 
+    {% if listing.active == False and user.is_authenticated and listing.winner == user %}
+        <p>You won this auction!</p>
+    {% endif %}
+
     {% if user.is_authenticated %}
         <form action="{% url 'place_bid' listing.id %}" method="POST">
         {% csrf_token %}
@@ -51,5 +55,19 @@
         </form>
     {% endif %}
 
+    
+
+    {% if user.is_authenticated %}
+        <p><form method="POST">
+            {% csrf_token %} 
+            {{ comment_form }}
+            <button type="submit">Add Comment</button>
+        </form></p>
+    {% endif %}
+
+    {% for comment in comments %}
+        <p>{{ comment.commenter }} - {{ comment.timestamp }}: {{ comment.content }}</p>
+    {% endfor %}
+    
     
 {% endblock %}

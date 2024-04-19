@@ -6,8 +6,40 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from .models import AuctionListing, Bid, User, Watchlist
-from .forms import CreateListingForm
+from .forms import CreateListingForm, CommentForm
 from django.views.generic import CreateView
+
+
+def listing_detail(request, listing_id):
+    if request.method == "GET":
+        listing = get_object_or_404(AuctionListing, pk=listing_id)  
+        is_watched = Watchlist.objects.filter(user=request.user, listing=listing).exists() 
+
+        context = {
+        'listing': listing, 
+        'is_watched': is_watched  
+        }
+
+        return render(request, 'auctions/listing_detail.html', context) 
+    
+    if request.method == "POST":
+        listing = get_object_or_404(AuctionListing, pk=listing_id) 
+        form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.listing = listing
+        comment.commenter = request.user
+        comment.save()
+        return redirect('listing_detail', listing_id=listing_id) 
+    else:
+        form = CommentForm()
+    
+    context = { 
+        'comments': listing.comments.order_by('-timestamp'),
+        'comment_form': form
+    }
+
+    return render(request, 'auctions/listing_detail.html', context)
 
 
 def close_auction(request, listing_id):
@@ -15,7 +47,7 @@ def close_auction(request, listing_id):
         listing = get_object_or_404(AuctionListing, pk=listing_id)
         if request.user == listing.seller:
             listing.active = False 
-            #listing.winner = listing.bids.order_by('-amount').first().bidder  # Assuming 'winner' field exists in your AuctionListing model
+            listing.winner = listing.bids.order_by('-amount').first().bidder 
             listing.save()
             messages.success(request, "Auction Closed!")
         else:
@@ -84,15 +116,6 @@ class CreateListingView(CreateView):
         return reverse('listing_detail', args=[self.object.id])
     
 
-def listing_detail(request, listing_id):
-    listing = get_object_or_404(AuctionListing, pk=listing_id)  # Change this later when adding error handling
-    is_watched = Watchlist.objects.filter(user=request.user, listing=listing).exists() 
-    context = {
-    'listing': listing, 
-    'is_watched': is_watched  
-}
-    context = {'listing': listing}
-    return render(request, 'auctions/listing_detail.html', context) 
 
 def index(request):
     active_listings = AuctionListing.objects.filter(active = True)  

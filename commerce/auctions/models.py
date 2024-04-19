@@ -19,14 +19,14 @@ class AuctionListing(models.Model):
     active = models.BooleanField(default=True, null=True)
     title = models.CharField(max_length=100)
     description = models.TextField()
-    starting_bid = models.DecimalField(max_digits=10, decimal_places=2)
-    current_bid = models.DecimalField(max_digits=10, decimal_places=2)
+    starting_bid = models.DecimalField(max_digits=10, decimal_places=2, default='0.00')
+    current_bid = models.DecimalField(max_digits=10, decimal_places=2, default='0.00')
     image = models.ImageField(upload_to='auctions/media', null=True, blank=True, default='auctions/static/auctions/No-Image-Placeholder.png')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings_sold")
-    winner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings_bought")
+    winner = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name="listings_bought", default="No winner")
 
     def save(self, *args, **kwargs):
         if not self.current_bid:  # Check if current_bid is not set
