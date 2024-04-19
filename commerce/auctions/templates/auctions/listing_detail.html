@@ -1,13 +1,55 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-<h5>Listing #{{ listing.id }} details:</h5>
-    <h3>{{ listing.title }}</h3>
-    <p><strong>Description:</strong> {{ listing.description }}</p>
-    <p><strong>Starting Bid:</strong> ${{ listing.starting_bid }}</p>
-    <p><strong>Seller:</strong> ${{ listing.seller }}</p>
+
+    <h3><strong>Listing #{{ listing.id }}: {{ listing.title }}</strong></h3>
+
+    {% if user.is_authenticated %}
+        <form action="{% url 'toggle_watchlist' listing.id %}" method="POST">
+        {% csrf_token %} 
+            {% if not is_watched %}
+                <button type="submit" name="action" value="add">Add to Watchlist</button>
+            {% else %}
+                <button type="submit" name="action" value="remove">Remove from Watchlist</button>
+            {% endif %}
+        </form>
+    {% else %} 
+        <p>Login to use watchlist</p>
+    {% endif %}
 
     {% if listing.image %}
-        <img src="{{ listing.image.url }}" alt="Image of {{ listing.title }}">
+        <p><img src="{{ listing.image.url }}" alt="Image of {{ listing.title }}"></p>
     {% endif %}
+
+    <p>{{ listing.description }}</p>
+
+    <p><strong>Starting Bid:</strong> ${{ listing.starting_bid }}</p>
+
+    <p><strong>Current Bid:</strong> ${{ listing.current_bid }}</p>
+
+    {% if user.is_authenticated %}
+        <form action="{% url 'place_bid' listing.id %}" method="POST">
+        {% csrf_token %}
+        <input type="number" name="bid_amount" min="{{ listing.starting_bid }}" step="0.01" required>
+        <button type="submit">Place Bid</button>
+        </form>
+        {% if messages %} 
+            {% for message in messages %}
+                <p {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+            {% endfor %}
+        {% endif %} 
+    {% else %}
+        <p>Login to place a bid.</p>
+    {% endif %}
+
+    <p><strong>Seller:</strong> ${{ listing.seller }}</p>
+
+    {% if user.is_authenticated and user == listing.seller %} 
+        <form action="{% url 'close_auction' listing.id %}" method="POST">
+            {% csrf_token %} 
+            <button type="submit">Close Auction</button>
+        </form>
+    {% endif %}
+
+    
 {% endblock %}

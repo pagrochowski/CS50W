@@ -1,11 +1,74 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
-from .models import AuctionListing, User
+from django.contrib.auth.decorators import login_required
+from .models import AuctionListing, Bid, User, Watchlist
 from .forms import CreateListingForm
 from django.views.generic import CreateView
+
+
+def close_auction(request, listing_id):
+    if request.user.is_authenticated:
+        listing = get_object_or_404(AuctionListing, pk=listing_id)
+        if request.user == listing.seller:
+            listing.active = False 
+            #listing.winner = listing.bids.order_by('-amount').first().bidder  # Assuming 'winner' field exists in your AuctionListing model
+            listing.save()
+            messages.success(request, "Auction Closed!")
+        else:
+            messages.error(request, "You cannot close listings you did not create.")
+    else:
+        messages.error(request, "Login required to close auctions.")
+    return redirect('listing_detail', listing_id=listing_id)
+
+
+@login_required
+def place_bid(request, listing_id):
+    listing = get_object_or_404(AuctionListing, pk=listing_id)
+    user = request.user
+
+    if request.method == "POST":
+        new_bid_amount = float(request.POST['bid_amount'])
+
+        if new_bid_amount <= listing.starting_bid:
+            messages.error(request, "Bid must be greater than the starting bid.")
+        elif listing.current_bid and new_bid_amount <= listing.current_bid:  # Check 'current_bid' if it existsi
+            messages.error(request, "Bid must be greater than the current highest bid.")
+        else:  # Bid is valid
+            Bid.objects.create(amount=new_bid_amount, bidder=user, listing=listing)
+            listing.current_bid = new_bid_amount  # Update the current_bid
+            listing.save()  # Save the change to the listing object
+            messages.success(request, "Your bid has been placed!")
+
+        return redirect('listing_detail', listing_id=listing_id) 
+    else: 
+        return redirect('listing_detail', listing_id=listing_id) 
+
+
+@login_required
+def toggle_watchlist(request, listing_id):
+    listing = get_object_or_404(AuctionListing, pk=listing_id)
+    user = request.user
+
+    if request.method == "POST":
+        action = request.POST['action']
+
+        if action == 'add':
+            Watchlist.objects.create(user=user, listing=listing)
+
+        elif action == 'remove':
+            Watchlist.objects.filter(user=user, listing=listing).delete()
+        
+        # Recalculate is_watched after the toggle action
+        is_watched = Watchlist.objects.filter(user=user, listing=listing).exists()
+        context = {'listing': listing, 'is_watched': is_watched}
+        return render(request, 'auctions/listing_detail.html', context)
+
+    else:
+        return redirect('listing_detail', listing_id=listing_id)
 
 
 class CreateListingView(CreateView):
@@ -19,10 +82,15 @@ class CreateListingView(CreateView):
 
     def get_success_url(self):
         return reverse('listing_detail', args=[self.object.id])
-
+    
 
 def listing_detail(request, listing_id):
     listing = get_object_or_404(AuctionListing, pk=listing_id)  # Change this later when adding error handling
+    is_watched = Watchlist.objects.filter(user=request.user, listing=listing).exists() 
+    context = {
+    'listing': listing, 
+    'is_watched': is_watched  
+}
     context = {'listing': listing}
     return render(request, 'auctions/listing_detail.html', context) 
 
