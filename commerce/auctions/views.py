@@ -15,6 +15,33 @@ def add_comment(request, listing_id):
     return render(request, 'auctions/listing_detail.html', context) 
 
 
+class CreateListingView(CreateView):
+    model = AuctionListing
+    form_class = CreateListingForm
+    template_name = 'auctions/create_listing.html'
+
+    def form_valid(self, form):
+        form.instance.seller = self.request.user 
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('listing_detail', args=[self.object.id])
+    
+
+def listing_detail(request, listing_id):
+    listing = get_object_or_404(AuctionListing, pk=listing_id)  
+    is_watched = Watchlist.objects.filter(user=request.user, listing=listing).exists() 
+    form = CommentForm()
+
+    context = {
+        'listing': listing, 
+        'is_watched': is_watched,
+        'comments': listing.comments.order_by('-timestamp'),
+        'comment_form': form
+    }
+
+    return render(request, 'auctions/listing_detail.html', context)
+
 @login_required
 def place_bid(request, listing_id):
     listing = get_object_or_404(AuctionListing, pk=listing_id)
@@ -23,7 +50,7 @@ def place_bid(request, listing_id):
     if request.method == "POST":
         new_bid_amount = float(request.POST['bid_amount'])
 
-        if new_bid_amount <= listing.starting_bid:
+        if new_bid_amount <= listing.starting_bid:  # Validate the bid
             messages.error(request, "Bid must be greater than the starting bid.")
         elif listing.current_bid and new_bid_amount <= listing.current_bid:  # Check 'current_bid' if it existsi
             messages.error(request, "Bid must be greater than the current highest bid.")
@@ -34,7 +61,6 @@ def place_bid(request, listing_id):
             messages.success(request, "Your bid has been placed!")
 
         return redirect('listing_detail', listing_id=listing_id)
-        #return render(request, 'auctions/listing_detail.html', context) 
 
     else: 
         return redirect('listing_detail', listing_id=listing_id)
@@ -53,64 +79,16 @@ def toggle_watchlist(request, listing_id):
 
         elif action == 'remove':
             Watchlist.objects.filter(user=user, listing=listing).delete()
-        
-        # Recalculate is_watched after the toggle action
-        is_watched = Watchlist.objects.filter(user=user, listing=listing).exists()
-        context = {'listing': listing, 'is_watched': is_watched}
+
         return redirect('listing_detail', listing_id=listing_id)
-        #return render(request, 'auctions/listing_detail.html', context)
 
     else: 
         return redirect('listing_detail', listing_id=listing_id)
 
 
-class CreateListingView(CreateView):
-    model = AuctionListing
-    form_class = CreateListingForm
-    template_name = 'auctions/create_listing.html'
-
-    def form_valid(self, form):
-        form.instance.seller = self.request.user 
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse('listing_detail', args=[self.object.id])
-    
-
-def listing_detail(request, listing_id):
-
-    listing = get_object_or_404(AuctionListing, pk=listing_id)  
-    is_watched = Watchlist.objects.filter(user=request.user, listing=listing).exists() 
-    form = CommentForm()
-    """
-    if request.method == "POST":
-        # Handle toggling watchlist
-        if 'action' in request.POST:
-            toggle_watchlist(request, listing_id)
-
-        # Handle placing bids
-        elif 'bid_amount' in request.POST:
-            place_bid(request, listing_id)
-
-        # Handle closing auction
-        elif 'close_auction' in request.POST:
-            close_auction(request, listing_id)
-    """
-
-    context = {
-        'listing': listing, 
-        'is_watched': is_watched,
-        'comments': listing.comments.order_by('-timestamp'),
-        'comment_form': form
-    }
-
-    return render(request, 'auctions/listing_detail.html', context)
-
-
 def close_auction(request, listing_id):
     if request.user.is_authenticated:
         listing = get_object_or_404(AuctionListing, pk=listing_id)
-        #is_watched = Watchlist.objects.filter(user=request.user, listing=listing).exists() 
         if request.user == listing.seller:
             listing.active = False 
             listing.winner = listing.bids.order_by('-amount').first().bidder 
