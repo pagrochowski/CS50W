@@ -5,15 +5,52 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from .models import AuctionListing, Bid, User, Watchlist
-from .forms import CreateListingForm, CommentForm
 from django.views.generic import CreateView
+from .models import *
+from .forms import *
 
+
+def categories_list(request):
+    categories = Category.objects.all()
+    context = {'categories': categories}
+    return render(request, 'auctions/categories_list.html', context)
+
+def category_detail(request, category_name):
+    try:
+        category = Category.objects.get(name=category_name)
+        listings = category.listings.filter(active=True)  # Get active listings
+        context = {'category': category, 'listings': listings}
+        return render(request, 'auctions/category_detail.html', context)
+    except Category.DoesNotExist:
+        return render(request, "auctions/error.html", {"message": "Category not found."}, status=404) 
+
+
+@login_required
+def watchlist(request):
+    watchlist_items = Watchlist.objects.filter(user=request.user)
+    watchlist_count = watchlist_items.count()  # Add this line
+    context = {'watchlist_items': watchlist_items, 'watchlist_count': watchlist_count}
+    return render(request, 'auctions/watchlist.html', context)
+
+
+@login_required
 def add_comment(request, listing_id):
     listing = get_object_or_404(AuctionListing, pk=listing_id)
-    context = {'listing': listing} 
-    return render(request, 'auctions/listing_detail.html', context) 
+    user = request.user
 
+    if request.method == "POST":
+        content = request.POST['content']
+        if content:  # Simple validation: Check if content is not empty
+            Comment.objects.create(
+                content=content, 
+                commenter=user, 
+                listing=listing
+            )
+            messages.success(request, "Your comment has been added!")
+        else:
+            messages.error(request, "Cannot add an empty comment.") 
+
+    return redirect('listing_detail', listing_id=listing_id)
 
 class CreateListingView(CreateView):
     model = AuctionListing
@@ -49,6 +86,10 @@ def place_bid(request, listing_id):
 
     if request.method == "POST":
         new_bid_amount = float(request.POST['bid_amount'])
+
+        if not listing.active:  # Check if the listing is active
+            messages.error(request, "Cannot place bids on a closed listing.")
+            return redirect('listing_detail', listing_id=listing_id)
 
         if new_bid_amount <= listing.starting_bid:  # Validate the bid
             messages.error(request, "Bid must be greater than the starting bid.")

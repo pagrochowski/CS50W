@@ -1,0 +1,24 @@
+{% extends 'auctions/layout.html' %}
+
+{% block body %}
+    <h2>Category: {{ category.name }}</h2>
+    {% if category.description %}
+        <p>{{ category.description }}</p>
+    {% endif %}
+
+    <h3>Active Listings</h3>
+    
+    {% if listings %}
+        <ul>
+            {% for listing in listings %}
+                <li>
+                    <a href="{% url 'listing_detail' listing.id %}">
+                        Listing #{{ listing.id }}: {{ listing.title }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No active listings in this category.</p>
+    {% endif %} 
+{% endblock %}
