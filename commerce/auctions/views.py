@@ -6,23 +6,14 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from .models import AuctionListing, Bid, User, Watchlist
-from .forms import CreateListingForm
+from .forms import CreateListingForm, CommentForm
 from django.views.generic import CreateView
 
+def add_comment(request, listing_id):
+    listing = get_object_or_404(AuctionListing, pk=listing_id)
+    context = {'listing': listing} 
+    return render(request, 'auctions/listing_detail.html', context) 
 
-def close_auction(request, listing_id):
-    if request.user.is_authenticated:
-        listing = get_object_or_404(AuctionListing, pk=listing_id)
-        if request.user == listing.seller:
-            listing.active = False 
-            listing.winner = listing.bids.order_by('-amount').first().bidder 
-            listing.save()
-            messages.success(request, "Auction Closed!")
-        else:
-            messages.error(request, "You cannot close listings you did not create.")
-    else:
-        messages.error(request, "Login required to close auctions.")
-    return redirect('listing_detail', listing_id=listing_id)
 
 @login_required
 def place_bid(request, listing_id):
@@ -42,10 +33,11 @@ def place_bid(request, listing_id):
             listing.save()  # Save the change to the listing object
             messages.success(request, "Your bid has been placed!")
 
-        context = {'listing': listing, 'force_refresh': True} 
-        return render(request, 'auctions/listing_detail.html', context) 
+        return redirect('listing_detail', listing_id=listing_id)
+        #return render(request, 'auctions/listing_detail.html', context) 
+
     else: 
-        return render(request, 'auctions/listing_detail.html', context) 
+        return redirect('listing_detail', listing_id=listing_id)
 
 
 @login_required
@@ -65,10 +57,11 @@ def toggle_watchlist(request, listing_id):
         # Recalculate is_watched after the toggle action
         is_watched = Watchlist.objects.filter(user=user, listing=listing).exists()
         context = {'listing': listing, 'is_watched': is_watched}
-        return render(request, 'auctions/listing_detail.html', context)
+        return redirect('listing_detail', listing_id=listing_id)
+        #return render(request, 'auctions/listing_detail.html', context)
 
-    else:
-        return redirect('listing_detail', listing=listing)
+    else: 
+        return redirect('listing_detail', listing_id=listing_id)
 
 
 class CreateListingView(CreateView):
@@ -86,11 +79,10 @@ class CreateListingView(CreateView):
 
 def listing_detail(request, listing_id):
 
-    listing = get_object_or_404(AuctionListing, pk=listing_id)  # Change this later when adding error handling
-    user = request.user
+    listing = get_object_or_404(AuctionListing, pk=listing_id)  
     is_watched = Watchlist.objects.filter(user=request.user, listing=listing).exists() 
-
-    
+    form = CommentForm()
+    """
     if request.method == "POST":
         # Handle toggling watchlist
         if 'action' in request.POST:
@@ -103,14 +95,33 @@ def listing_detail(request, listing_id):
         # Handle closing auction
         elif 'close_auction' in request.POST:
             close_auction(request, listing_id)
+    """
 
     context = {
         'listing': listing, 
-        'is_watched': is_watched  
+        'is_watched': is_watched,
+        'comments': listing.comments.order_by('-timestamp'),
+        'comment_form': form
     }
 
     return render(request, 'auctions/listing_detail.html', context)
 
+
+def close_auction(request, listing_id):
+    if request.user.is_authenticated:
+        listing = get_object_or_404(AuctionListing, pk=listing_id)
+        #is_watched = Watchlist.objects.filter(user=request.user, listing=listing).exists() 
+        if request.user == listing.seller:
+            listing.active = False 
+            listing.winner = listing.bids.order_by('-amount').first().bidder 
+            listing.save()
+            messages.success(request, "Auction Closed!")
+        else:
+            messages.error(request, "You cannot close listings you did not create.")
+    else:
+        messages.error(request, "Login required to close auctions.")
+
+    return redirect('listing_detail', listing_id=listing_id)
 
 def index(request):
     active_listings = AuctionListing.objects.filter(active = True)  
