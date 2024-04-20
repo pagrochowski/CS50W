@@ -9,6 +9,29 @@ from .models import AuctionListing, Bid, User, Watchlist
 from .forms import CreateListingForm
 from django.views.generic import CreateView
 
+@login_required
+def toggle_watchlist(request, listing_id):
+    listing = get_object_or_404(AuctionListing, pk=listing_id)
+    user = request.user
+
+    if request.method == "POST":
+        action = request.POST['action']
+
+        if action == 'add':
+            Watchlist.objects.create(user=user, listing=listing)
+
+        elif action == 'remove':
+            Watchlist.objects.filter(user=user, listing=listing).delete()
+        
+        # Recalculate is_watched after the toggle action
+        is_watched = Watchlist.objects.filter(user=user, listing=listing).exists()
+        context = {'listing': listing, 'is_watched': is_watched}
+        return redirect(request, 'auctions/listing_detail.html', context)
+
+    else:
+        return redirect('listing_detail', listing_id=listing_id)
+
+
 
 def close_auction(request, listing_id):
     if request.user.is_authenticated:
@@ -23,6 +46,7 @@ def close_auction(request, listing_id):
     else:
         messages.error(request, "Login required to close auctions.")
     return redirect('listing_detail', listing_id=listing_id)
+
 
 @login_required
 def place_bid(request, listing_id):
@@ -42,10 +66,9 @@ def place_bid(request, listing_id):
             listing.save()  # Save the change to the listing object
             messages.success(request, "Your bid has been placed!")
 
-        context = {'listing': listing, 'force_refresh': True} 
-        return render(request, 'auctions/listing_detail.html', context) 
+        return redirect('listing_detail', listing_id=listing_id) 
     else: 
-        return render(request, 'auctions/listing_detail.html', context) 
+        return redirect('listing_detail', listing_id=listing_id) 
 
 
 @login_required
@@ -68,7 +91,7 @@ def toggle_watchlist(request, listing_id):
         return render(request, 'auctions/listing_detail.html', context)
 
     else:
-        return redirect('listing_detail', listing=listing)
+        return redirect('listing_detail', listing_id=listing_id)
 
 
 class CreateListingView(CreateView):
@@ -85,32 +108,16 @@ class CreateListingView(CreateView):
     
 
 def listing_detail(request, listing_id):
-
     listing = get_object_or_404(AuctionListing, pk=listing_id)  # Change this later when adding error handling
-    user = request.user
     is_watched = Watchlist.objects.filter(user=request.user, listing=listing).exists() 
 
-    
-    if request.method == "POST":
-        # Handle toggling watchlist
-        if 'action' in request.POST:
-            toggle_watchlist(request, listing_id)
-
-        # Handle placing bids
-        elif 'bid_amount' in request.POST:
-            place_bid(request, listing_id)
-
-        # Handle closing auction
-        elif 'close_auction' in request.POST:
-            close_auction(request, listing_id)
-
     context = {
-        'listing': listing, 
-        'is_watched': is_watched  
+    'listing': listing, 
+    'is_watched': is_watched  
     }
 
-    return render(request, 'auctions/listing_detail.html', context)
-
+    context = {'listing': listing}
+    return render(request, 'auctions/listing_detail.html', context) 
 
 def index(request):
     active_listings = AuctionListing.objects.filter(active = True)  
