@@ -26,31 +26,29 @@ class AuctionListing(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings_sold")
-    #winner = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name="listings_bought", default="No winner")
     winner = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, related_name="listings_bought")
 
     def save(self, *args, **kwargs):
-        if not self.current_bid:  # Check if current_bid is not set
+        if not self.current_bid:  
             self.current_bid = self.starting_bid
 
         if self.image:
-            super().save(*args, **kwargs)  # Save image first
+            super().save(*args, **kwargs)  
 
-            img_path = os.path.join('auctions/media', self.image.path)  # Construct the full path
+            img_path = os.path.join('auctions/media', self.image.path)  
             print(self.image.path)
             img = Image.open(img_path) 
 
-            max_size = (200, 200)  # Adjust as needed
-            print("Image Size Before:", img.size)  # Print the original image dimensions
+            max_size = (200, 200)  
+            print("Image Size Before:", img.size)  
             img.thumbnail(max_size)
-            print("Image Size After:", img.size)   # Print the dimensions after resizing attempt
+            print("Image Size After:", img.size)   
             img.save(img_path)
             print(img_path)
 
-        super().save(*args, **kwargs)  # Call the original save method
+        super().save(*args, **kwargs)  
 
     
-
 class Bid(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(auto_now_add=True)

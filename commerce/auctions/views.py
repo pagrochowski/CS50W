@@ -18,7 +18,7 @@ def categories_list(request):
 def category_detail(request, category_name):
     try:
         category = Category.objects.get(name=category_name)
-        listings = category.listings.filter(active=True)  # Get active listings
+        listings = category.listings.filter(active=True) 
         context = {'category': category, 'listings': listings}
         return render(request, 'auctions/category_detail.html', context)
     except Category.DoesNotExist:
@@ -28,7 +28,7 @@ def category_detail(request, category_name):
 @login_required
 def watchlist(request):
     watchlist_items = Watchlist.objects.filter(user=request.user)
-    watchlist_count = watchlist_items.count()  # Add this line
+    watchlist_count = watchlist_items.count()  
     context = {'watchlist_items': watchlist_items, 'watchlist_count': watchlist_count}
     return render(request, 'auctions/watchlist.html', context)
 
@@ -40,7 +40,7 @@ def add_comment(request, listing_id):
 
     if request.method == "POST":
         content = request.POST['content']
-        if content:  # Simple validation: Check if content is not empty
+        if content:  
             Comment.objects.create(
                 content=content, 
                 commenter=user, 
@@ -87,18 +87,18 @@ def place_bid(request, listing_id):
     if request.method == "POST":
         new_bid_amount = float(request.POST['bid_amount'])
 
-        if not listing.active:  # Check if the listing is active
+        if not listing.active:  
             messages.error(request, "Cannot place bids on a closed listing.")
             return redirect('listing_detail', listing_id=listing_id)
 
-        if new_bid_amount <= listing.starting_bid:  # Validate the bid
+        if new_bid_amount <= listing.starting_bid:  
             messages.error(request, "Bid must be greater than the starting bid.")
-        elif listing.current_bid and new_bid_amount <= listing.current_bid:  # Check 'current_bid' if it existsi
+        elif listing.current_bid and new_bid_amount <= listing.current_bid:  
             messages.error(request, "Bid must be greater than the current highest bid.")
         else:  # Bid is valid
             Bid.objects.create(amount=new_bid_amount, bidder=user, listing=listing)
-            listing.current_bid = new_bid_amount  # Update the current_bid
-            listing.save()  # Save the change to the listing object
+            listing.current_bid = new_bid_amount  
+            listing.save()  
             messages.success(request, "Your bid has been placed!")
 
         return redirect('listing_detail', listing_id=listing_id)
