@@ -105,9 +105,9 @@ function load_mailbox(mailbox) {
 
       document.querySelector('#emails-view').appendChild(emailDiv);
 
-      // Display an email that is clicked on
+      // Add click listener
       emailDiv.addEventListener('click', () => {
-      viewEmail(email.id); // Pass the email's ID
+        viewEmail(email.id, emailDiv); // Pass emailId and the div itself
       });
 
     });
@@ -116,25 +116,35 @@ function load_mailbox(mailbox) {
   
 }
 
-function viewEmail(emailId) {
-  fetch(`/emails/${emailId}`)
-      .then(response => response.json())
-      .then(email => {
-          // Construct and display the email details view
-          displayEmailDetails(email); 
-      })
-      .catch(error => console.error('Error fetching email:', error)); 
-}
+function viewEmail(emailId, clickedEmailDiv) {
+  // Check if email details already exist for this email
+  const existingDetails = clickedEmailDiv.nextElementSibling;
 
-function displayEmailDetails(email) {
-  const emailView = document.createElement('div');
-  emailView.innerHTML = `
-      <div><b>From:</b> ${email.sender}</div>
-      <div><b>Recipients:</b> ${email.recipients.join(', ')}</div>
-      <div><b>Subject:</b> ${email.subject}</div>
-      <div><b>Timestamp:</b> ${email.timestamp}</div>
-      <hr>
-      <div>${email.body}</div> 
-  `;
-  document.querySelector('#emails-view').appendChild(emailView);
+  if (existingDetails && existingDetails.classList.contains('email-details')) {
+    // Details exist, remove them
+    existingDetails.remove();
+  } 
+  else {
+    // Fetch email details
+    fetch(`/emails/${emailId}`)
+        .then(response => response.json())
+        .then(email => {
+            const emailDetails = document.createElement('div');
+            emailDetails.classList.add('email-details'); // Adding class for hiding/styling
+
+            // Populate with email details
+            emailDetails.innerHTML = `
+                <div><b>From:</b> ${email.sender}</div>
+                <div><b>Recipients:</b> ${email.recipients.join(', ')}</div>
+                <div><b>Subject:</b> ${email.subject}</div>
+                <div><b>Timestamp:</b> ${email.timestamp}</div>
+                <hr>
+                <div>${email.body}</div> 
+            `;
+
+            // Insert details after the clicked email div
+            clickedEmailDiv.parentNode.insertBefore(emailDetails, clickedEmailDiv.nextSibling);
+        })
+        .catch(error => console.error('Error fetching email:', error)); 
+  }
 }
