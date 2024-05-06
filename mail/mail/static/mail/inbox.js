@@ -7,10 +7,12 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#compose').addEventListener('click', compose_email);
 
   // By default, load the inbox
+  console.log("Loading mailbox");
   load_mailbox('inbox');
 });
 
 function compose_email() {
+  console.log("Composing email");
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
@@ -33,7 +35,7 @@ function compose_email() {
     // Wait for the response and validate
     .then(response => {
       if (response.ok) {
-        console.log("Response okay!");
+        console.log("Response okay! Mhmmmmm");
         return response.json();
       }
       else {
@@ -67,19 +69,19 @@ function compose_email() {
 
 function load_mailbox(mailbox) {
   
+  
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+  console.log("Loading mailbox");
   
   // Dynamic fetch URL based on mailbox
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
-    // Clear any existing emails
-    // document.querySelector('#emails-view').innerHTML = ''; 
 
     // Show the mailbox name (after clearing)
     document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
@@ -100,7 +102,7 @@ function load_mailbox(mailbox) {
 
       // Apply 'read' class to read emails
       if (email.read) { 
-      emailDiv.classList.add('read');
+        emailDiv.classList.add('read');
       } 
 
       document.querySelector('#emails-view').appendChild(emailDiv);
@@ -117,6 +119,15 @@ function load_mailbox(mailbox) {
 }
 
 function viewEmail(emailId, clickedEmailDiv) {
+
+  // Mark email as read (PUT request)
+  fetch(`/emails/${emailId}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        read: true
+    })
+  })
+
   // Check if email details already exist for this email
   const existingDetails = clickedEmailDiv.nextElementSibling;
 
@@ -127,24 +138,27 @@ function viewEmail(emailId, clickedEmailDiv) {
   else {
     // Fetch email details
     fetch(`/emails/${emailId}`)
-        .then(response => response.json())
-        .then(email => {
-            const emailDetails = document.createElement('div');
-            emailDetails.classList.add('email-details'); // Adding class for hiding/styling
+    .then(response => response.json())
+    .then(email => {
+        const emailDetails = document.createElement('div');
+        emailDetails.classList.add('email-details'); // Adding class for hiding/styling
 
-            // Populate with email details
-            emailDetails.innerHTML = `
-                <div><b>From:</b> ${email.sender}</div>
-                <div><b>Recipients:</b> ${email.recipients.join(', ')}</div>
-                <div><b>Subject:</b> ${email.subject}</div>
-                <div><b>Timestamp:</b> ${email.timestamp}</div>
-                <hr>
-                <div>${email.body}</div> 
-            `;
+        // Populate with email details
+        emailDetails.innerHTML = `
+            <div><b>From:</b> ${email.sender}</div>
+            <div><b>Recipients:</b> ${email.recipients.join(', ')}</div>
+            <div><b>Subject:</b> ${email.subject}</div>
+            <div><b>Timestamp:</b> ${email.timestamp}</div>
+            <hr>
+            <div>${email.body}</div> 
+        `;
 
-            // Insert details after the clicked email div
-            clickedEmailDiv.parentNode.insertBefore(emailDetails, clickedEmailDiv.nextSibling);
-        })
-        .catch(error => console.error('Error fetching email:', error)); 
+        // Insert details after the clicked email div
+        clickedEmailDiv.parentNode.insertBefore(emailDetails, clickedEmailDiv.nextSibling);
+
+        // Update email as read in the UI, adding styling
+        clickedEmailDiv.classList.add('read');
+    })
+    .catch(error => console.error('Error fetching email:', error)); 
   }
 }
