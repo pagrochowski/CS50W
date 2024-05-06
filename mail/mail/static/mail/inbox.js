@@ -1,3 +1,5 @@
+let currentMailbox = 'inbox'; // Global variable to keep track of currently opened mailbox
+
 document.addEventListener('DOMContentLoaded', function() {
 
   // Use buttons to toggle between views
@@ -69,7 +71,10 @@ function compose_email() {
 
 function load_mailbox(mailbox) {
   
-  
+  // Update the global mailbox variable
+  currentMailbox = mailbox;
+  console.log(`CurrentMailbox: ${currentMailbox}`);
+
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
@@ -111,7 +116,6 @@ function load_mailbox(mailbox) {
       emailDiv.addEventListener('click', () => {
         viewEmail(email.id, emailDiv); // Pass emailId and the div itself
       });
-
     });
   })
   .catch(error => console.error('Error fetching emails:', error))
@@ -140,6 +144,7 @@ function viewEmail(emailId, clickedEmailDiv) {
     fetch(`/emails/${emailId}`)
     .then(response => response.json())
     .then(email => {
+
         const emailDetails = document.createElement('div');
         emailDetails.classList.add('email-details'); // Adding class for hiding/styling
 
@@ -158,6 +163,70 @@ function viewEmail(emailId, clickedEmailDiv) {
 
         // Update email as read in the UI, adding styling
         clickedEmailDiv.classList.add('read');
+
+        // Create button elements for archivisation
+        const archiveBtn = document.createElement('button');
+        archiveBtn.id = 'archive-btn';
+        archiveBtn.textContent = 'Archive'; 
+
+        const unarchiveBtn = document.createElement('button');
+        unarchiveBtn.id = 'unarchive-btn';
+        unarchiveBtn.textContent = 'Unarchive';
+
+        // Attach event listeners to the buttons
+        archiveBtn.addEventListener('click', () => {
+          fetch(`/emails/${emailId}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                archived: true 
+            })
+          })
+          .then(response => { 
+            if (response.ok) {
+                console.log('Email archived!');
+                load_mailbox('inbox'); // Reload the inbox
+            } else {
+                console.error("Error trying to archive the email.");
+            }
+          })
+        }); 
+        unarchiveBtn.addEventListener('click', () => {
+          fetch(`/emails/${emailId}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                archived: false 
+            })
+          })
+          .then(response => { 
+            if (response.ok) {
+                console.log('Email unarchived!');
+                load_mailbox('inbox'); // Reload the inbox
+            } else {
+              console.error("Error trying to unarchive the email.");
+            }
+          })
+        }); 
+
+        console.log(`CurrentMailbox: ${currentMailbox}`);
+
+        // Conditional button visibility
+        if (currentMailbox === 'inbox') {
+          archiveBtn.style.display = 'block';
+          unarchiveBtn.style.display = 'none';
+        } 
+        else if (currentMailbox === 'archive') {
+          archiveBtn.style.display = 'none';
+          unarchiveBtn.style.display = 'block';
+        } 
+        else { // 'Sent' or other mailboxes
+          archiveBtn.style.display = 'none';
+          unarchiveBtn.style.display = 'none';
+        }
+
+        // Append buttons to the UI
+        emailDetails.appendChild(archiveBtn);
+        emailDetails.appendChild(unarchiveBtn);
+
     })
     .catch(error => console.error('Error fetching email:', error)); 
   }
