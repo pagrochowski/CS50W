@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
   load_mailbox('inbox');
 });
 
-function compose_email() {
+function compose_email(type = 'new', originalEmail = null) {
   console.log("Composing email");
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
@@ -23,6 +23,22 @@ function compose_email() {
   document.querySelector('#compose-recipients').value = '';
   document.querySelector('#compose-subject').value = '';
   document.querySelector('#compose-body').value = '';
+
+  // Compose a new reply if the email type is "reply"
+  if (type === 'reply') {
+    // Copy original sender as recipient
+    document.querySelector('#compose-recipients').value = originalEmail.sender;
+    // Copy original subject and add "Re: "
+    let subject = originalEmail.subject;
+    if (!subject.startsWith('Re:')) {
+      subject = 'Re: ' + subject;
+    }
+    document.querySelector('#compose-subject').value = subject;
+    // Copy original body text and add meta data
+    const timestamp = new Date(originalEmail.timestamp).toLocaleString(); // Format timestamp
+    const quoteHeader = `\n\nOn ${timestamp} ${originalEmail.sender} wrote:\n`;
+    document.querySelector('#compose-body').value = quoteHeader + originalEmail.body; 
+    }
 
   document.querySelector('#compose-form').onsubmit = () => { 
     // Fetch the promise from emails route
@@ -66,7 +82,6 @@ function compose_email() {
     // Preventing default behaviour of form submission (to see logs)
     return false;
   };
-
 }
 
 function load_mailbox(mailbox) {
@@ -176,6 +191,7 @@ function viewEmail(emailId, clickedEmailDiv) {
         // Attach event listeners to the buttons
         archiveBtn.addEventListener('click', () => {
           fetch(`/emails/${emailId}`, {
+            // Mark the email as archived
             method: 'PUT',
             body: JSON.stringify({
                 archived: true 
@@ -190,8 +206,10 @@ function viewEmail(emailId, clickedEmailDiv) {
             }
           })
         }); 
+
         unarchiveBtn.addEventListener('click', () => {
           fetch(`/emails/${emailId}`, {
+            // Mark the email as unarchived
             method: 'PUT',
             body: JSON.stringify({
                 archived: false 
@@ -206,8 +224,6 @@ function viewEmail(emailId, clickedEmailDiv) {
             }
           })
         }); 
-
-        console.log(`CurrentMailbox: ${currentMailbox}`);
 
         // Conditional button visibility
         if (currentMailbox === 'inbox') {
@@ -226,6 +242,19 @@ function viewEmail(emailId, clickedEmailDiv) {
         // Append buttons to the UI
         emailDetails.appendChild(archiveBtn);
         emailDetails.appendChild(unarchiveBtn);
+
+        // Create reply button
+        const replyBtn = document.createElement('button');
+        replyBtn.id = 'reply-btn';
+        replyBtn.textContent = 'Reply';
+
+        // Attach event listener
+        replyBtn.addEventListener('click', () => { 
+            compose_email('reply', email);
+        }); 
+
+        // Add the reply button
+        emailDetails.appendChild(replyBtn); 
 
     })
     .catch(error => console.error('Error fetching email:', error)); 
