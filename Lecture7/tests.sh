@@ -1,0 +1,1 @@
+python3 -c "from test_prime import test_prime; test_prime(25, False)"
