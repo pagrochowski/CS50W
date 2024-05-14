@@ -1,0 +1,39 @@
+# Base image
+FROM mcr.microsoft.com/devcontainers/base:jammy
+
+# Install system dependencies for Chrome and Python
+RUN apt-get update && \
+    apt-get install -y \
+        wget \
+        gnupg \
+        libgconf-2-4 \
+        python3-pip \
+        python3-venv
+
+# Install Chrome in headless mode (no GUI)
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' >> /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
+    apt-get install -y google-chrome-stable
+
+# Clean up APT
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create and activate a virtual environment
+ENV VIRTUAL_ENV=/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Install Python dependencies from requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Set non-root user (optional for better security)
+USER vscode
+
+# Set the working directory
+WORKDIR /workspaces/CS50W/Lecture7
+
+# Optional: Expose port if needed
+EXPOSE 8000

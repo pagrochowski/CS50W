@@ -3,9 +3,9 @@ import pathlib
 import unittest
 
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-
-print(os.environ['PATH'])
 
 # Finds the Uniform Resourse Identifier of a file
 def file_uri(filename):
@@ -16,6 +16,17 @@ driver = webdriver.Chrome()
 
 # Standard outline of testing class
 class WebpageTests(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        options = Options()
+        options.add_argument("--headless=new") 
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+
+        cls.driver = webdriver.Chrome(options=options, service=Service(ChromeDriverManager().install()))
+
 
     def test_title(self):
         """Make sure title is correct"""

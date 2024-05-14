@@ -1,0 +1,5 @@
+Extensions installed on Dev Container: Ubuntu:
+ms-azuretools.vscode-docker
+ms-python.debugpy
+ms-python.python
+ms-python.vscode-pylance
