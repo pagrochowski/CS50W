@@ -1,38 +1,21 @@
-name: Django Unit Tests 
+name: Basic Django Test
 
-on:
+on: 
   push:
     branches:
-      - master     
+      - master
 
 jobs:
-  test_project:
+  run_tests:
     runs-on: ubuntu-latest
-    container:
-      image: your-docker-image  
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-      - name: Run Selenium Tests
-        working-directory: Lecture7/airline  # Set the working directory to the project root
-        run: python test_counter.py
-
-  test_django:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3    
-      - name: Set up Python 
-        uses: actions/setup-python@v4 
-        with:
-          python-version: '3.x'       
-      - name: Install Dependencies
-        run: pip install -r requirements.txt 
-      - name: Run Django Unit Tests
-        run: python manage.py test  # Run manage.py directly
-
-
+      - name: Install Django
+        run: pip install Django
+      - name: Run Django Tests (Assuming Project Name is 'myproject')
+        working-directory: Lecture7/airline  # Update if your Django project is in a different location
+        run: python manage.py test
