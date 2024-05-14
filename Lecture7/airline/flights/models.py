@@ -16,7 +16,7 @@ class Flight(models.Model):
     def __str__(self):
         return f"{self.id}: {self.origin} to {self.destination}"
     
-    # changing to or
+    # changing to or and yet again
     def is_valid_flight(self):
         return self.origin != self.destination or self.duration > 0
     

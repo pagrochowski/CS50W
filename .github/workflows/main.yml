@@ -1,5 +1,8 @@
 name: Testing
-on: push
+on: 
+  push:
+    paths:             
+          - 'Lecture7/airline/**'
 
 jobs:
   test_project:
