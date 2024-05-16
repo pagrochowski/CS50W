@@ -1,14 +1,67 @@
+
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
 from django.urls import reverse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 
-from .models import User
+from .forms import *
+from .models import *
+
+@login_required
+def follow(request, user_id):
+    try:
+        user_to_follow = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+
+    _, created = Following.objects.get_or_create(user=request.user, followed_user=user_to_follow)
+    if created:
+        return JsonResponse({'message': 'Followed'})
+    else:
+        Following.objects.filter(user=request.user, followed_user=user_to_follow).delete()
+        return JsonResponse({'message': 'Unfollowed'})
+
+
+def profile(request, username):
+    user = get_object_or_404(User, username=username)
+    posts = Post.objects.filter(user=user).order_by('-timestamp')
+    following_count = user.following.all().count()
+    follower_count = user.followers.all().count()
+
+    # Check if current user is already following the profile user
+    is_following = False
+    if request.user.is_authenticated:
+        is_following = Following.objects.filter(user=request.user, followed_user=user).exists()
+
+    return render(request, 'network/profile.html', {
+        'profile_user': user,
+        'posts': posts,
+        'follower_count': follower_count,
+        'following_count': following_count,
+        'is_following': is_following,  # Pass this to the template
+    })
+
+
+@login_required
+def new_post(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.user = request.user
+            post.save()
+            return redirect('index')  # Redirect to the main page or wherever you display posts
+    else:
+        form = PostForm()
+    return render(request, 'network/new_post.html', {'form': form})
 
 
 def index(request):
-    return render(request, "network/index.html")
+    posts = Post.objects.all().order_by('-timestamp')
+    return render(request, 'network/index.html', {'posts': posts})
 
 
 def login_view(request):

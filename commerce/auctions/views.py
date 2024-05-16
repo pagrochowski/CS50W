@@ -10,6 +10,21 @@ from .models import *
 from .forms import *
 
 
+@login_required
+def new_post(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)  # Don't save yet
+            post.user = request.user        # Set the user
+            post.save()                     # Now save
+            return redirect('index')        # Redirect after saving
+    else:
+        form = PostForm()
+
+    return render(request, 'network/new_post.html', {'form': form}) 
+
+
 def categories_list(request):
     categories = Category.objects.all()
     context = {'categories': categories}

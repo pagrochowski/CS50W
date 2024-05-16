@@ -81,6 +81,8 @@ DATABASES = {
     }
 }
 
+
+
 AUTH_USER_MODEL = "network.User"
 
 # Password validation

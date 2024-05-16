@@ -1,0 +1,53 @@
+{% extends "network/layout.html" %}
+{% block body %}
+    <h2>{{ profile_user.username }}'s Profile</h2>
+
+    <ul>
+        <li>Following: {{ profile_user.following.all.count }}</li>
+        <li>Followers: {{ profile_user.followers.all.count }}</li>
+    </ul>
+
+    {% if user.is_authenticated and user != profile_user %}
+        <button id="followBtn" class="btn btn-primary" data-user-id="{{ profile_user.id }}">
+            {% if is_following %}
+                Unfollow
+            {% else %}
+                Follow
+            {% endif %}
+        </button>
+    {% endif %}
+
+    <h3>Posts</h3>
+
+    {% for post in posts %}
+        <div class="post-container">
+            <div class="post">
+                <p>{{ post.content }}</p>
+                <p>Posted on: {{ post.timestamp }}</p>
+            </div>
+        </div>
+    {% endfor %}
+    {% block script %}  
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const followBtn = document.getElementById('followBtn');
+
+                followBtn.addEventListener('click', function() {
+                    const userId = followBtn.dataset.userId;
+                    fetch(`/follow/${userId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message === 'Followed') {
+                            followBtn.textContent = 'Unfollow';
+                        } else {
+                            followBtn.textContent = 'Follow';
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+        </script>
+    {% endblock script %}
+
+{% endblock %}
+

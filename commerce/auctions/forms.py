@@ -20,3 +20,12 @@ class CommentForm(forms.ModelForm):
             'content': forms.Textarea(attrs={'placeholder': 'Add your comment here'})
         }
         
+from .models import Post
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={'class': 'form-control'})
+        }
