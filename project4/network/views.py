@@ -13,13 +13,14 @@ from .models import *
 
 @login_required
 def following(request):
-    # Get the users that the current user is following
     followed_users = Following.objects.filter(user=request.user).values_list('followed_user', flat=True)
+    posts_list = Post.objects.filter(user__in=followed_users).order_by('-timestamp')
 
-    # Get posts from those followed users
-    posts = Post.objects.filter(user__in=followed_users).order_by('-timestamp')
+    paginator = Paginator(posts_list, 10)  # Show 10 posts per page
+    page_number = request.GET.get('page')  # Get page number from query parameters
+    page_obj = paginator.get_page(page_number)
 
-    return render(request, 'network/following.html', {'posts': posts})
+    return render(request, 'network/following.html', {'page_obj': page_obj})
 
 
 @login_required
@@ -48,12 +49,17 @@ def profile(request, username):
     if request.user.is_authenticated:
         is_following = Following.objects.filter(user=request.user, followed_user=user).exists()
 
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'network/profile.html', {
         'profile_user': user,
         'posts': posts,
         'follower_count': follower_count,
         'following_count': following_count,
         'is_following': is_following,  # Pass this to the template
+        'page_obj': page_obj
     })
 
 
@@ -72,8 +78,13 @@ def new_post(request):
 
 
 def index(request):
-    posts = Post.objects.all().order_by('-timestamp')
-    return render(request, 'network/index.html', {'posts': posts})
+    posts_list = Post.objects.all().order_by('-timestamp')
+
+    paginator = Paginator(posts_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'network/index.html', {'page_obj': page_obj})
 
 
 def login_view(request):
