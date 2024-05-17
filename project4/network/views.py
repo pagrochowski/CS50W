@@ -6,9 +6,21 @@ from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 
 from .forms import *
 from .models import *
+
+@login_required
+def following(request):
+    # Get the users that the current user is following
+    followed_users = Following.objects.filter(user=request.user).values_list('followed_user', flat=True)
+
+    # Get posts from those followed users
+    posts = Post.objects.filter(user__in=followed_users).order_by('-timestamp')
+
+    return render(request, 'network/following.html', {'posts': posts})
+
 
 @login_required
 def follow(request, user_id):
