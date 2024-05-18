@@ -16,20 +16,38 @@ from .models import *
 
 @login_required
 @require_POST
-def edit_post(request, post_id):
+def edit_post(request, post_id, username=None):
     try:
         post = get_object_or_404(Post, pk=post_id)
-        if post.user != request.user:
-            return JsonResponse({'error': 'You are not authorized to edit this post.'}, status=403)
 
+        # Authorization check:
+        if username is not None:  # Edit from profile page
+            if post.user.username != username:
+                return JsonResponse({'error': 'You are not authorized to edit this post.'}, status=403)
+        else:  # Edit from index page
+            if post.user != request.user:
+                return JsonResponse({'error': 'You are not authorized to edit this post.'}, status=403)
+
+        # Data handling:
         data = json.loads(request.body)
-        post.content = data['content']
+        new_content = data.get('content')
+
+        if not new_content:
+            return JsonResponse({'error': 'Invalid data. Content is required.'}, status=400)
+
+        post.content = new_content
         post.save()
+
         return JsonResponse({'message': 'Post updated successfully'})
+
     except json.JSONDecodeError:
-        return HttpResponseBadRequest("Invalid JSON data") 
-    except Exception as e:  # Catch any unexpected errors
-        return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
+        return HttpResponseBadRequest("Invalid JSON data")
+    
+    except Post.DoesNotExist:
+        return JsonResponse({'error': 'Post not found.'}, status=404)  
+
+    except Exception as e:  # Catch any other unexpected errors
+        return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500) 
 
 
 @login_required

@@ -67,26 +67,4 @@
         <p>{{ profile_user.username }} hasn't made any posts yet.</p>
     {% endif %}
 
-    {% block script %}
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const followBtn = document.getElementById('followBtn');
-
-                followBtn.addEventListener('click', function() {
-                    const userId = followBtn.dataset.userId;
-                    fetch(`/follow/${userId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.message === 'Followed') {
-                            followBtn.textContent = 'Unfollow';
-                        } else {
-                            followBtn.textContent = 'Follow';
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-                });
-            });
-        </script>
-    {% endblock script %}
-
 {% endblock %}
