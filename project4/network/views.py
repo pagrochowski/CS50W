@@ -13,6 +13,20 @@ import json
 from .forms import *
 from .models import *
 
+@login_required
+def like_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    user = request.user
+
+    if user in post.likes.all():
+        post.likes.remove(user)
+        liked = False
+    else:
+        post.likes.add(user)
+        liked = True
+
+    return JsonResponse({'liked': liked, 'likes_count': post.likes.count()})
+
 
 @login_required
 @require_POST

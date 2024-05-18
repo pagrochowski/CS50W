@@ -55,6 +55,14 @@
                     {% endif %}
                 </p>
                 <p id="post-content-{{ post.id }}">{{ post.content }}</p>
+
+                <button class="like-button btn btn-outline-danger" data-post-id="{{ post.id }}">
+                    {% if user in post.likes.all %}
+                        Unlike ({{ post.likes.count }})
+                    {% else %}
+                        Like ({{ post.likes.count }})
+                    {% endif %}
+                </button> 
             </div>
         </div>
     {% endfor %}
