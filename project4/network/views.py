@@ -5,11 +5,32 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.core.paginator import Paginator
+from django.views.decorators.http import require_POST
+import json
 
 from .forms import *
 from .models import *
+
+
+@login_required
+@require_POST
+def edit_post(request, post_id):
+    try:
+        post = get_object_or_404(Post, pk=post_id)
+        if post.user != request.user:
+            return JsonResponse({'error': 'You are not authorized to edit this post.'}, status=403)
+
+        data = json.loads(request.body)
+        post.content = data['content']
+        post.save()
+        return JsonResponse({'message': 'Post updated successfully'})
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("Invalid JSON data") 
+    except Exception as e:  # Catch any unexpected errors
+        return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
+
 
 @login_required
 def following(request):

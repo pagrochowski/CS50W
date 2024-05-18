@@ -22,16 +22,21 @@
     
     {% if posts %} 
         {% for post in page_obj %}
-            <div class="post-container">
+            <div class="post-container" data-post-id="{{ post.id }}"> 
                 <div class="post">
                     <p>
                         <strong><a href="{% url 'profile' post.user.username %}">
-                            {{ post.user.username }}</a></strong> - {{ post.timestamp }}
+                            {{ post.user.username }}</a></strong> 
+                        - {{ post.timestamp }} - Likes: 0
+
+                        {% if post.user == user %} 
+                            <a href="#" class="edit-link">Edit</a>
+                        {% endif %}
                     </p>
-                    <p>{{ post.content }}</p>
+                    <p id="post-content-{{ post.id }}">{{ post.content }}</p>
                 </div>
             </div>
-         {% endfor %}
+        {% endfor %}
 
         {% if page_obj.has_other_pages %}
             <nav aria-label="Page navigation">

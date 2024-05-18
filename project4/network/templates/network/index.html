@@ -43,12 +43,20 @@
     {% endif %}
 
     {% for post in page_obj %}
-        <div class="post">
-            <strong><p><a href="{% url 'profile' post.user.username %}">{{ post.user.username }}</a></strong> - {{ post.timestamp }}  - Likes: 0
-            </p>
-            <p>{{ post.content }}</p>
+        <div class="post-container" data-post-id="{{ post.id }}"> 
+            <div class="post">
+                <p>
+                    <strong><a href="{% url 'profile' post.user.username %}">
+                        {{ post.user.username }}</a></strong> 
+                    - {{ post.timestamp }} - Likes: 0
+
+                    {% if post.user == user %} 
+                        <a href="#" class="edit-link">Edit</a>
+                    {% endif %}
+                </p>
+                <p id="post-content-{{ post.id }}">{{ post.content }}</p>
+            </div>
         </div>
     {% endfor %}
-
 
 {% endblock %}
