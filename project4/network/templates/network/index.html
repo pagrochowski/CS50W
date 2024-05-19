@@ -48,22 +48,21 @@
                 <p>
                     <strong><a href="{% url 'profile' post.user.username %}">
                         {{ post.user.username }}</a></strong> 
-                    - {{ post.timestamp }} - Likes: 0
+                    - {{ post.timestamp }}
 
                     {% if post.user == user %} 
                         <a href="#" class="edit-link">Edit</a>
                     {% endif %}
                 </p>
                 <p id="post-content-{{ post.id }}">{{ post.content }}</p>
-
-                <button class="like-button btn btn-outline-danger" data-post-id="{{ post.id }}">
-                    {% if user in post.likes.all %}
-                        Unlike ({{ post.likes.count }})
-                    {% else %}
-                        Like ({{ post.likes.count }})
-                    {% endif %}
-                </button> 
             </div>
+            <button class="like-unlike-button btn btn-outline-danger" data-post-id="{{ post.id }}">
+                {% if user in post.likes.all %}
+                    Unlike (<span class="likes-count">{{ post.likes.count }}</span>)
+                {% else %}
+                    Like (<span class="likes-count">{{ post.likes.count }}</span>)
+                {% endif %}
+            </button>
         </div>
     {% endfor %}
 

@@ -11,7 +11,41 @@ document.addEventListener('DOMContentLoaded', function() {
             handleFollowClick(this);
         };
     }
+
+    if (document.querySelector('.like-unlike-button')) {
+        document.querySelector('.like-unlike-button').onclick = function() {
+            console.log("Like button clicked!")
+            handleLikeUnlikeClick(this);
+        };
+    }
 });
+
+function handleLikeUnlikeClick(button) {
+    const postContainer = button.closest('.post-container');
+    const postId = button.dataset.postId;
+    
+    fetch(`/like/${postId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            // Update like count and button text based on response
+            button.textContent = `${data.liked ? 'Unlike' : 'Like'} (${data.likes_count})`; // Update both text and count
+            const likesCountElement = postContainer.querySelector('.likes-count'); // Get updated reference
+            if (likesCountElement) { 
+                likesCountElement.textContent = data.likes_count;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while liking/unliking the post.');
+        });
+}
+
+
 
 function handleFollowClick(followBtn) {
     const userId = followBtn.dataset.userId;
