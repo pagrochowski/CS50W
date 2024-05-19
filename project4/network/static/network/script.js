@@ -1,23 +1,34 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    if (document.querySelector('.edit-link')){
-        document.querySelector('.edit-link').onclick = function() {
-            handleEditClick(this);
-        };
-    }
+    // Select all edit buttons
+    const editLink = document.querySelectorAll('.edit-link');
+    // Use forEach to attach the event listener to each button
+    editLink.forEach(button => {
+        button.addEventListener('click', function() {
+            console.log("Edit button clicked!");
+            handleEditClick(this); // 'this' refers to the clicked button
+        });
+    });
 
-    if (document.getElementById('followBtn')) {
-        document.getElementById('followBtn').onclick = function() {
-            handleFollowClick(this);
-        };
-    }
+     // Select all edit buttons
+     const followBtn = document.querySelectorAll('#followBtn');
+     // Use forEach to attach the event listener to each button
+     followBtn.forEach(button => {
+         button.addEventListener('click', function() {
+             console.log("Follow button clicked!");
+             handleFollowClick(this); // 'this' refers to the clicked button
+         });
+     });
 
-    if (document.querySelector('.like-unlike-button')) {
-        document.querySelector('.like-unlike-button').onclick = function() {
-            console.log("Like button clicked!")
-            handleLikeUnlikeClick(this);
-        };
-    }
+    // Select all like-unlike buttons
+    const likeUnlikeButtons = document.querySelectorAll('.like-unlike-button');
+    // Use forEach to attach the event listener to each button
+    likeUnlikeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            console.log("Like button clicked!");
+            handleLikeUnlikeClick(this); // 'this' refers to the clicked button
+        });
+    });
 });
 
 function handleLikeUnlikeClick(button) {
