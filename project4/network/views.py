@@ -60,7 +60,7 @@ def edit_post(request, post_id, username=None):
     except Post.DoesNotExist:
         return JsonResponse({'error': 'Post not found.'}, status=404)  
 
-    except Exception as e:  # Catch any other unexpected errors
+    except Exception as e:  # Catch unexpected errors
         return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500) 
 
 
@@ -111,7 +111,7 @@ def profile(request, username):
         'posts': posts,
         'follower_count': follower_count,
         'following_count': following_count,
-        'is_following': is_following,  # Pass this to the template
+        'is_following': is_following, 
         'page_obj': page_obj
     })
 
@@ -124,7 +124,7 @@ def new_post(request):
             post = form.save(commit=False)
             post.user = request.user
             post.save()
-            return redirect('index')  # Redirect to the main page or wherever you display posts
+            return redirect('index')  
     else:
         form = PostForm()
     return render(request, 'network/new_post.html', {'form': form})

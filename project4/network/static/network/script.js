@@ -57,7 +57,6 @@ function handleLikeUnlikeClick(button) {
 }
 
 
-
 function handleFollowClick(followBtn) {
     const userId = followBtn.dataset.userId;
         fetch(`/follow/${userId}/`)
