@@ -1,4 +1,5 @@
 Extensions installed on Dev Container: Ubuntu:
+github.vscode-github-actions
 ms-azuretools.vscode-docker
 ms-python.debugpy
 ms-python.python
